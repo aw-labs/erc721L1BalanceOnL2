@@ -2,5 +2,5 @@
 
 ```shell
 npx hardhat run scripts/deploy.js 
-npx hardhat verify --network goerliOptimism 0xbCDD64fB7Ba540E44923F28A2cC96e6e12230D2A
+npx hardhat verify --network goerliOptimism 0x6D664CFE0cE55bced5250b9Cc3F04E98a239EF22
 ```

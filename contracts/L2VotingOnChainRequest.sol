@@ -35,9 +35,9 @@ contract L2VotingOnChainRequest {
 
     address public STATE_QUERY_GATEWAY = address(0x1b132819aFE2AFD5b76eF6721bCCC6Ede40cd9eC);
     address public FEE_VAULT = address(0x608c92Cfc42cd214FCbc3AF9AD799a7E1DfA6De2);
-    address public addressERC721 = address(0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03); //nouns
+    address public addressERC721 = address(0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03); //NounsDAO
     uint32 public chainId = 1;
-    uint64 public snapshotBlock = 20012312;
+    uint64 public snapshotBlock = 17856136; //August 6, 2023
 
     mapping(address => uint256) public addrToVote;
     address public deployer;
