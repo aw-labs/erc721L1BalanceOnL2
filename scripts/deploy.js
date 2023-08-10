@@ -10,7 +10,11 @@ async function main() {
   const provider = new ethers.providers.JsonRpcProvider(process.env.RPC_URL);
  
   const L2VotingOnChainRequest = await hre.ethers.getContractFactory("L2VotingOnChainRequest");
-  const contract = await L2VotingOnChainRequest.deploy();
+  const ERC721_ADDRESS = "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03"; // NounsDAO
+  const SNAPSHOT_BLOCK = 17856136; //August 6, 2023
+  
+  const contract = await L2VotingOnChainRequest.deploy(ERC721_ADDRESS, SNAPSHOT_BLOCK);
+
   console.log("Deploying L2VotingOnChainRequest...");
   await contract.deployed();
 
