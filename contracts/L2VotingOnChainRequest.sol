@@ -35,19 +35,20 @@ contract L2VotingOnChainRequest {
 
     address public STATE_QUERY_GATEWAY = address(0x1b132819aFE2AFD5b76eF6721bCCC6Ede40cd9eC);
     address public FEE_VAULT = address(0x608c92Cfc42cd214FCbc3AF9AD799a7E1DfA6De2);
-    address public addressERC721 = address(0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03); //NounsDAO
+    address public addressERC721;
     uint32 public chainId = 1;
-    uint64 public snapshotBlock = 17856136; //August 6, 2023
+    uint64 public snapshotBlock;
 
     mapping(address => uint256) public addrToVote;
     address public deployer;
 
-    constructor() {
+    constructor(address _addressERC721, uint64 _snapshotBlock) {
         deployer = msg.sender;
+        addressERC721 = _addressERC721;
+        snapshotBlock = _snapshotBlock;
     }
 
-    function vote(uint256 option, address holder) external {
-        require(option == 1 || option == 2, "Invalid option");
+    function vote(uint256 productId, address holder) external {
         if (addrToVote[holder] != 0) {
             revert("Cannot vote twice");
         }
@@ -62,7 +63,7 @@ contract L2VotingOnChainRequest {
         IStateQueryGateway(STATE_QUERY_GATEWAY).requestStateQuery(
             stateQuery,
             L2VotingOnChainRequest.continueVote.selector, // Which function to call after async call is done
-            abi.encode(option, holder) // What other data to pass to the callback
+            abi.encode(productId, holder) // What other data to pass to the callback
         );
         uint256 feePerRequest = 0.003 ether + 100000 gwei;
         IFeeVault(FEE_VAULT).depositNative{value: feePerRequest}(address(this));
@@ -71,9 +72,9 @@ contract L2VotingOnChainRequest {
     function continueVote(bytes memory _requestResult, bytes memory _callbackExtraData) external {
         require(msg.sender == STATE_QUERY_GATEWAY);
         uint256 balance = abi.decode(_requestResult, (uint256));
-        (uint256 option, address holder) = abi.decode(_callbackExtraData, (uint256, address));
+        (uint256 productId, address holder) = abi.decode(_callbackExtraData, (uint256, address));
         if (balance >= 1) {
-            addrToVote[holder] = option;
+            addrToVote[holder] = productId;
         }
         emit Voted(holder);
     }
