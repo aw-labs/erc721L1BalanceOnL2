@@ -48,7 +48,8 @@ contract L2VotingOnChainRequest {
         snapshotBlock = _snapshotBlock;
     }
 
-    function vote(uint256 productId, address holder) external {
+    function vote(uint256 productId) external {
+        address holder = msg.sender;
         if (addrToVote[holder] != 0) {
             revert("Cannot vote twice");
         }
