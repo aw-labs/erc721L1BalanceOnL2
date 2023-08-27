@@ -12,6 +12,7 @@ module.exports = {
     goerliOptimism: {
       url: process.env.RPC_URL,
       accounts: [`0x${process.env.PRIVATE_KEY}`],
+      gasPrice: 20000000000 // 20 gwei
     },
   },
   etherscan: {
