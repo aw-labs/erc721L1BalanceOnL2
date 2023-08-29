@@ -39,7 +39,7 @@ contract L2VotingOnChainRequest {
     uint32 public chainId = 1;
     uint64 public snapshotBlock;
 
-    mapping(address => uint256) public addrToVote;
+    mapping(address => mapping(uint256 => uint256)) public addrToVote;
     address public deployer;
 
     constructor(address _addressERC721, uint64 _snapshotBlock) {
@@ -50,7 +50,7 @@ contract L2VotingOnChainRequest {
 
     function vote(uint256 productId) external {
         address holder = msg.sender;
-        if (addrToVote[holder] != 0) {
+        if (addrToVote[holder][productId] != 0) {
             revert("Cannot vote twice");
         }
 
@@ -66,18 +66,13 @@ contract L2VotingOnChainRequest {
             L2VotingOnChainRequest.continueVote.selector, // Which function to call after async call is done
             abi.encode(productId, holder) // What other data to pass to the callback
         );
-        uint256 feePerRequest = 0.003 ether + 100000 gwei;
-        IFeeVault(FEE_VAULT).depositNative{value: feePerRequest}(address(this));
     }
 
     function continueVote(bytes memory _requestResult, bytes memory _callbackExtraData) external {
         require(msg.sender == STATE_QUERY_GATEWAY);
         uint256 balance = abi.decode(_requestResult, (uint256));
         (uint256 productId, address holder) = abi.decode(_callbackExtraData, (uint256, address));
-        if (balance >= 1) {
-            addrToVote[holder] = productId;
-        }
-        emit Voted(holder);
+        addrToVote[holder][productId] = balance;
     }
 
     function withdraw() external {
