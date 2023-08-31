@@ -21,11 +21,6 @@ interface IStateQueryGateway {
     ) external;
 }
 
-interface IFeeVault {
-    function depositNative(address _account) external payable;
-    // function deposit(address _account, address _token, uint256 _amount) external;
-}
-
 interface IERC721 {
     function balanceOf(address owner) external view returns (uint256 balance);
 }
@@ -34,51 +29,39 @@ contract L2VotingOnChainRequest {
     event Voted(address indexed holder);
 
     address public STATE_QUERY_GATEWAY = address(0x1b132819aFE2AFD5b76eF6721bCCC6Ede40cd9eC);
-    address public FEE_VAULT = address(0x608c92Cfc42cd214FCbc3AF9AD799a7E1DfA6De2);
-    address public addressERC721;
     uint32 public chainId = 1;
-    uint64 public snapshotBlock;
 
-    mapping(address => mapping(uint256 => uint256)) public addrToVote;
+    // erc721Address => holder => blocknumber => balance
+    mapping(address => mapping(address => mapping(uint256 => uint256))) public erc721SnapBalance;
     address public deployer;
 
-    constructor(address _addressERC721, uint64 _snapshotBlock) {
-        deployer = msg.sender;
-        addressERC721 = _addressERC721;
-        snapshotBlock = _snapshotBlock;
-    }
 
-    function vote(uint256 productId) external {
+    function vote(address _addressERC721, uint64 _snapshotBlock) external {
         address holder = msg.sender;
-        if (addrToVote[holder][productId] != 0) {
-            revert("Cannot vote twice");
+        if (erc721SnapBalance[_addressERC721][holder][_snapshotBlock] != 0) {
+            revert("Don't have to check balance anymore");
         }
 
         StateQuery memory stateQuery = StateQuery({
             chainId: chainId,
-            blockNumber: snapshotBlock,
+            blockNumber: _snapshotBlock,
             fromAddress: address(0),
-            toAddress: addressERC721,
+            toAddress: _addressERC721,
             toCalldata: abi.encodeWithSelector(IERC721.balanceOf.selector, holder)
         });
         IStateQueryGateway(STATE_QUERY_GATEWAY).requestStateQuery(
             stateQuery,
-            L2VotingOnChainRequest.continueVote.selector, // Which function to call after async call is done
-            abi.encode(productId, holder) // What other data to pass to the callback
+            L2VotingOnChainRequest.continueVote.selector,
+            abi.encode(_addressERC721, holder, _snapshotBlock) 
         );
     }
 
     function continueVote(bytes memory _requestResult, bytes memory _callbackExtraData) external {
-        require(msg.sender == STATE_QUERY_GATEWAY);
+        require(msg.sender == STATE_QUERY_GATEWAY, "Only STATE_QUERY_GATEWAY can call this function");
         uint256 balance = abi.decode(_requestResult, (uint256));
-        (uint256 productId, address holder) = abi.decode(_callbackExtraData, (uint256, address));
-        addrToVote[holder][productId] = balance;
+        (address addressERC721, address holder, uint256 snapshotBlock) = abi.decode(_callbackExtraData, (address, address, uint256));
+        erc721SnapBalance[addressERC721][holder][snapshotBlock] = balance;
     }
-
-    function withdraw() external {
-        require(msg.sender == deployer);
-        payable(msg.sender).transfer(address(this).balance);
-    }
-
+    
     receive() external payable {}
 }
