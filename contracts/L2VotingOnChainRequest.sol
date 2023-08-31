@@ -26,8 +26,6 @@ interface IERC721 {
 }
 
 contract L2VotingOnChainRequest {
-    event Voted(address indexed holder);
-
     address public STATE_QUERY_GATEWAY = address(0x1b132819aFE2AFD5b76eF6721bCCC6Ede40cd9eC);
     uint32 public chainId = 1;
 
