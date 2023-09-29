@@ -15,22 +15,26 @@ contract L2VotingOnChainRequest {
     address public FUNCTION_GATEWAY =
         address(0x852a94F8309D445D27222eDb1E92A4E83DdDd2a8);
     bytes32 public FUNCTION_ID =
-        0x936ce1359edb760ca8dda03f1fa09666c0e49496478a0b696f8fdebf7701ccd5;
+        0xf6a3321734b6be98c30742ccbf24448e2eb00aa92a7be9f934a427f46a8697a8;
 
     uint32 public chainId = 1;
 
     // erc721Address => holder => blocknumber => balance
     mapping(address => mapping(address => mapping(uint256 => uint256)))
         public erc721SnapBalance;
-    address public deployer;
+    address public owner;
+
+    constructor() {
+        owner = msg.sender;
+    }
 
     function updateFunctionId(bytes32 _functionId) external {
-        require(msg.sender == deployer, "Only deployer can call this function");
+        require(msg.sender == owner, "Only owner can call this function");
         FUNCTION_ID = _functionId;
     }
 
     function updateFunctionGateway(address _functionGateway) external {
-        require(msg.sender == deployer, "Only deployer can call this function");
+        require(msg.sender == owner, "Only owner can call this function");
         FUNCTION_GATEWAY = _functionGateway;
     }
 
